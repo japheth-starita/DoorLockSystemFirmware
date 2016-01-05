@@ -67,13 +67,22 @@ void loop()
       Serial.println("Adding Device . . .");
       addDevice();
     }
+    else if (signal == "5"){
+      Serial.println("Deleting Device . . ");
+      deleteDevice();
+    }
     else if (signal == "6"){
-      Serial.println("Checking MAC Address . . ");
-      checkMacAdd();
+      //delete this and the method
+      Serial.println("Sending Devices . . ");
+      sendDevices();
     }
     else if (signal == "7"){
       Serial.println("Changing . . . ");
       changeUserPass();
+    }
+    else if (signal == "8"){
+      Serial.println("Name . . . ");
+      sendMacAdd();
     }
     signal = "";
   }
@@ -192,19 +201,29 @@ void checkProdKey(){
  resetValue();
 } 
 
-void checkMacAdd(){
-  String devices = getDataFromFile("devices.txt");
-  bluetooth.println(devices);
-  delay(1000);  
-}
-
 void addDevice(){
- String addressestoAdd;
- while (bluetooth.available()){
-   addressestoAdd += char(bluetooth.read());
- }
+  
+  int noOfDevices = 0;
+  String addressestoAdd;
+  while (bluetooth.available()){
+    addressestoAdd += char(bluetooth.read());
+  }
  
- overwriteFile("devices.txt", addressestoAdd);
+ if(!SD.exists("user1.txt")){
+  overwriteFile("user1.txt", addressestoAdd);
+  bluetooth.println("user1");
+ } 
+ else if(!SD.exists("user2.txt")){
+   overwriteFile("user2.txt", addressestoAdd);
+  bluetooth.println("user2");
+ }
+  else if(!SD.exists("user3.txt")){
+   overwriteFile("user3.txt", addressestoAdd);
+  bluetooth.println("user3");
+ }
+  else {
+  bluetooth.println("Error");
+ }
 }
 
 
@@ -217,4 +236,60 @@ void changeUserPass(){
  newusernamepass.trim();
  overwriteFile("admin.txt", newusernamepass);
  bluetooth.println("1");
+}
+
+//send mac address for verification
+void sendMacAdd(){
+  char myChar;
+  int user;
+  while(bluetooth.available()){
+    myChar = bluetooth.read();
+    if(isDigit(myChar)){
+      user = myChar - '0';
+    }
+  }
+  if(user == 1){
+    bluetooth.println(getDataFromFile("user1.txt"));
+  }
+  else if(user == 2){
+    bluetooth.println(getDataFromFile("user2.txt"));
+  }
+  else if(user == 3){
+    bluetooth.println(getDataFromFile("user3.txt"));
+  }
+}
+
+void deleteDevice(){
+  char myChar;
+  int user;
+  while(bluetooth.available()){
+    myChar = bluetooth.read();
+    if(isDigit(myChar)){
+      user = myChar - '0';
+    }
+  }
+  if(user == 1){
+    SD.remove("user1.txt");
+    bluetooth.println("Success");
+  }
+  else if(user == 2){
+    SD.remove("user2.txt");
+    bluetooth.println("Success");
+  }
+  else if(user == 3){
+    SD.remove("user3.txt");
+    bluetooth.println("Success");
+  }
+}
+
+void sendDevices(){
+ if(!SD.exists("user1.txt")){
+  bluetooth.println(2);
+ } 
+ if(!SD.exists("user2.txt")){
+  bluetooth.println(2);
+ }
+ if(!SD.exists("user3.txt")){
+  bluetooth.println(3);
+ }
 }
